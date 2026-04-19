@@ -114,7 +114,7 @@ func (cs *udpConns) dial(id, addr string) (*udpConn, bool, error) {
 	defer cs.Unlock()
 	conn, ok := cs.m[id]
 	if !ok {
-		c, err := net.Dial("udp", addr)
+		c, err := net.Dial("udp4", addr)
 		if err != nil {
 			return nil, false, err
 		}

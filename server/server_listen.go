@@ -13,7 +13,7 @@ import (
 	"golang.org/x/crypto/acme/autocert"
 )
 
-//TLSConfig enables configures TLS
+// TLSConfig enables configures TLS
 type TLSConfig struct {
 	Key     string
 	Cert    string
@@ -43,7 +43,7 @@ func (s *Server) listener(host, port string) (net.Listener, error) {
 		}
 	}
 	//tcp listen
-	l, err := net.Listen("tcp", host+":"+port)
+	l, err := net.Listen("tcp4", host+":"+port)
 	if err != nil {
 		return nil, err
 	}

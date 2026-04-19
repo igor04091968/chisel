@@ -18,24 +18,25 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-//listenUDP is a special listener which forwards packets via
-//the bound ssh connection. tricky part is multiplexing lots of
-//udp clients through the entry node. each will listen on its
-//own source-port for a response:
-//                                                (random)
-//    src-1 1111->...                         dst-1 6345->7777
-//    src-2 2222->... <---> udp <---> udp <-> dst-1 7543->7777
-//    src-3 3333->...    listener    handler  dst-1 1444->7777
+// listenUDP is a special listener which forwards packets via
+// the bound ssh connection. tricky part is multiplexing lots of
+// udp clients through the entry node. each will listen on its
+// own source-port for a response:
 //
-//we must store these mappings (1111-6345, etc) in memory for a length
-//of time, so that when the exit node receives a response on 6345, it
-//knows to return it to 1111.
+//	                                            (random)
+//	src-1 1111->...                         dst-1 6345->7777
+//	src-2 2222->... <---> udp <---> udp <-> dst-1 7543->7777
+//	src-3 3333->...    listener    handler  dst-1 1444->7777
+//
+// we must store these mappings (1111-6345, etc) in memory for a length
+// of time, so that when the exit node receives a response on 6345, it
+// knows to return it to 1111.
 func listenUDP(l *cio.Logger, sshTun sshTunnel, remote *settings.Remote) (*udpListener, error) {
-	a, err := net.ResolveUDPAddr("udp", remote.Local())
+	a, err := net.ResolveUDPAddr("udp4", remote.Local())
 	if err != nil {
 		return nil, l.Errorf("resolve: %s", err)
 	}
-	conn, err := net.ListenUDP("udp", a)
+	conn, err := net.ListenUDP("udp4", a)
 	if err != nil {
 		return nil, l.Errorf("listen: %s", err)
 	}
@@ -135,7 +136,7 @@ func (u *udpListener) runOutbound(ctx context.Context) error {
 			return u.Errorf("decode error: %w", err)
 		}
 		//write back to inbound udp
-		addr, err := net.ResolveUDPAddr("udp", p.Src)
+		addr, err := net.ResolveUDPAddr("udp4", p.Src)
 		if err != nil {
 			return u.Errorf("resolve error: %w", err)
 		}

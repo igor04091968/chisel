@@ -12,12 +12,12 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-//sshTunnel exposes a subset of Tunnel to subtypes
+// sshTunnel exposes a subset of Tunnel to subtypes
 type sshTunnel interface {
 	getSSH(ctx context.Context) ssh.Conn
 }
 
-//Proxy is the inbound portion of a Tunnel
+// Proxy is the inbound portion of a Tunnel
 type Proxy struct {
 	*cio.Logger
 	sshTun sshTunnel
@@ -30,7 +30,7 @@ type Proxy struct {
 	mu     sync.Mutex
 }
 
-//NewProxy creates a Proxy
+// NewProxy creates a Proxy
 func NewProxy(logger *cio.Logger, sshTun sshTunnel, index int, remote *settings.Remote) (*Proxy, error) {
 	id := index + 1
 	p := &Proxy{
@@ -46,11 +46,11 @@ func (p *Proxy) listen() error {
 	if p.remote.Stdio {
 		//TODO check if pipes active?
 	} else if p.remote.LocalProto == "tcp" {
-		addr, err := net.ResolveTCPAddr("tcp", p.remote.LocalHost+":"+p.remote.LocalPort)
+		addr, err := net.ResolveTCPAddr("tcp4", p.remote.LocalHost+":"+p.remote.LocalPort)
 		if err != nil {
 			return p.Errorf("resolve: %s", err)
 		}
-		l, err := net.ListenTCP("tcp", addr)
+		l, err := net.ListenTCP("tcp4", addr)
 		if err != nil {
 			return p.Errorf("tcp: %s", err)
 		}
@@ -69,8 +69,8 @@ func (p *Proxy) listen() error {
 	return nil
 }
 
-//Run enables the proxy and blocks while its active,
-//close the proxy by cancelling the context.
+// Run enables the proxy and blocks while its active,
+// close the proxy by cancelling the context.
 func (p *Proxy) Run(ctx context.Context) error {
 	if p.remote.Stdio {
 		return p.runStdio(ctx)

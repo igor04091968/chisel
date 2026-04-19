@@ -10,8 +10,8 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-//HTTPServer extends net/http Server and
-//adds graceful shutdowns
+// HTTPServer extends net/http Server and
+// adds graceful shutdowns
 type HTTPServer struct {
 	*http.Server
 	waiterMux sync.Mutex
@@ -19,7 +19,7 @@ type HTTPServer struct {
 	listenErr error
 }
 
-//NewHTTPServer creates a new HTTPServer
+// NewHTTPServer creates a new HTTPServer
 func NewHTTPServer() *HTTPServer {
 	return &HTTPServer{
 		Server: &http.Server{},
@@ -35,7 +35,7 @@ func (h *HTTPServer) GoListenAndServeContext(ctx context.Context, addr string, h
 	if ctx == nil {
 		return errors.New("ctx must be set")
 	}
-	l, err := net.Listen("tcp", addr)
+	l, err := net.Listen("tcp4", addr)
 	if err != nil {
 		return err
 	}

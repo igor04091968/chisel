@@ -129,7 +129,38 @@ func DecodeRemote(s string) (*Remote, error) {
 	if r.Stdio && r.Reverse {
 		return nil, errors.New("stdio cannot be reversed")
 	}
+	// Hard-disable IPv6. This fork intentionally operates IPv4-only to avoid
+	// surprising ::1/localhost behavior and to keep policies deterministic.
+	if err := r.normalizeNoIPv6(); err != nil {
+		return nil, err
+	}
 	return r, nil
+}
+
+func (r *Remote) normalizeNoIPv6() error {
+	// Normalize localhost (avoid ::1 resolution).
+	if r.LocalHost == "localhost" {
+		r.LocalHost = "127.0.0.1"
+	}
+	if r.RemoteHost == "localhost" {
+		r.RemoteHost = "127.0.0.1"
+	}
+	// Reject any IPv6 literals (bracketed or not).
+	if isIPv6Literal(r.LocalHost) || isIPv6Literal(r.RemoteHost) {
+		return errors.New("IPv6 is not supported")
+	}
+	return nil
+}
+
+func isIPv6Literal(host string) bool {
+	h := strings.TrimSpace(host)
+	if h == "" {
+		return false
+	}
+	h = strings.TrimPrefix(h, "[")
+	h = strings.TrimSuffix(h, "]")
+	ip := net.ParseIP(h)
+	return ip != nil && strings.Contains(h, ":")
 }
 
 func isPort(s string) bool {
@@ -153,7 +184,7 @@ func isHost(s string) bool {
 
 var l4Proto = regexp.MustCompile(`(?i)\/(tcp|udp)$`)
 
-//L4Proto extacts the layer-4 protocol from the given string
+// L4Proto extacts the layer-4 protocol from the given string
 func L4Proto(s string) (head, proto string) {
 	if l4Proto.MatchString(s) {
 		l := len(s)
@@ -162,7 +193,7 @@ func L4Proto(s string) (head, proto string) {
 	return s, ""
 }
 
-//implement Stringer
+// implement Stringer
 func (r Remote) String() string {
 	sb := strings.Builder{}
 	if r.Reverse {
@@ -177,7 +208,7 @@ func (r Remote) String() string {
 	return sb.String()
 }
 
-//Encode remote to a string
+// Encode remote to a string
 func (r Remote) Encode() string {
 	if r.LocalPort == "" {
 		r.LocalPort = r.RemotePort
@@ -193,7 +224,7 @@ func (r Remote) Encode() string {
 	return local + ":" + remote
 }
 
-//Local is the decodable local portion
+// Local is the decodable local portion
 func (r Remote) Local() string {
 	if r.Stdio {
 		return "stdio"
@@ -204,7 +235,7 @@ func (r Remote) Local() string {
 	return r.LocalHost + ":" + r.LocalPort
 }
 
-//Remote is the decodable remote portion
+// Remote is the decodable remote portion
 func (r Remote) Remote() string {
 	if r.Socks {
 		return "socks"
@@ -215,8 +246,8 @@ func (r Remote) Remote() string {
 	return r.RemoteHost + ":" + r.RemotePort
 }
 
-//UserAddr is checked when checking if a
-//user has access to a given remote
+// UserAddr is checked when checking if a
+// user has access to a given remote
 func (r Remote) UserAddr() string {
 	if r.Reverse {
 		return "R:" + r.LocalHost + ":" + r.LocalPort
@@ -224,23 +255,23 @@ func (r Remote) UserAddr() string {
 	return r.RemoteHost + ":" + r.RemotePort
 }
 
-//CanListen checks if the port can be listened on
+// CanListen checks if the port can be listened on
 func (r Remote) CanListen() bool {
 	//valid protocols
 	switch r.LocalProto {
 	case "tcp":
-		conn, err := net.Listen("tcp", r.Local())
+		conn, err := net.Listen("tcp4", r.Local())
 		if err == nil {
 			conn.Close()
 			return true
 		}
 		return false
 	case "udp":
-		addr, err := net.ResolveUDPAddr("udp", r.Local())
+		addr, err := net.ResolveUDPAddr("udp4", r.Local())
 		if err != nil {
 			return false
 		}
-		conn, err := net.ListenUDP(r.LocalProto, addr)
+		conn, err := net.ListenUDP("udp4", addr)
 		if err == nil {
 			conn.Close()
 			return true
@@ -253,7 +284,7 @@ func (r Remote) CanListen() bool {
 
 type Remotes []*Remote
 
-//Filter out forward reversed/non-reversed remotes
+// Filter out forward reversed/non-reversed remotes
 func (rs Remotes) Reversed(reverse bool) Remotes {
 	subset := Remotes{}
 	for _, r := range rs {
@@ -265,7 +296,7 @@ func (rs Remotes) Reversed(reverse bool) Remotes {
 	return subset
 }
 
-//Encode back into strings
+// Encode back into strings
 func (rs Remotes) Encode() []string {
 	s := make([]string, len(rs))
 	for i, r := range rs {
