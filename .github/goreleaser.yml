@@ -2,7 +2,8 @@
 #   goreleaser release --config goreleaser.yml --clean --snapshot
 version: 2
 builds:
-  - env:
+  - binary: asterctl
+    env:
       - CGO_ENABLED=0
     ldflags:
       - -s -w -X github.com/jpillora/chisel/share.BuildVersion={{.Version}}
