@@ -81,14 +81,14 @@ func TestRemoteDecode(t *testing.T) {
 		{
 			"localhost:5353:1.1.1.1:53/udp",
 			Remote{
-				LocalHost:   "localhost",
+				LocalHost:   "0.0.0.0", // localhost преобразуется в 0.0.0.0 для безопасности
 				LocalPort:   "5353",
 				LocalProto:  "udp",
 				RemoteHost:  "1.1.1.1",
 				RemotePort:  "53",
 				RemoteProto: "udp",
 			},
-			"localhost:5353:1.1.1.1:53/udp",
+			"0.0.0.0:5353:1.1.1.1:53/udp",
 		},
 		{
 			"[::1]:8080:google.com:80",

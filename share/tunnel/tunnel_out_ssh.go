@@ -79,7 +79,9 @@ func (t *Tunnel) handleSocks(src io.ReadWriteCloser) error {
 }
 
 func (t *Tunnel) handleTCP(l *cio.Logger, src io.ReadWriteCloser, hostPort string) error {
-	dst, err := net.Dial("tcp", hostPort)
+	// Явное указание IPv4 для предотвращения подключения через ::1 (IPv6 localhost)
+	// Это предотвращает потенциальные атаки подбора паролей SSH через IPv6
+	dst, err := net.Dial("tcp4", hostPort)
 	if err != nil {
 		return err
 	}

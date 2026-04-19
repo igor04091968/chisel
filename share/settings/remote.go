@@ -111,6 +111,14 @@ func DecodeRemote(s string) (*Remote, error) {
 			r.RemoteHost = "127.0.0.1"
 		}
 	}
+	// Предотвращение неявного использования IPv6
+	// Явно указываем версию IP для избежания подбора паролей через ::1
+	if r.RemoteHost == "localhost" {
+		r.RemoteHost = "127.0.0.1"
+	}
+	if r.LocalHost == "localhost" {
+		r.LocalHost = "0.0.0.0"
+	}
 	if r.RemoteProto == "" {
 		r.RemoteProto = "tcp"
 	}
