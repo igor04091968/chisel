@@ -104,8 +104,9 @@ func NewClient(c *Config) (*Client, error) {
 		server:    u.String(),
 		tlsConfig: nil,
 	}
-	//set default log level
-	client.Logger.Info = true
+	// Keep default behavior quiet; verbose mode opts into logs explicitly.
+	client.Logger.Info = c.Verbose
+	client.Logger.Debug = c.Verbose
 	//configure tls
 	if u.Scheme == "wss" {
 		tc := &tls.Config{}
@@ -242,11 +243,6 @@ func (c *Client) Start(ctx context.Context) error {
 	c.stop = cancel
 	eg, ctx := errgroup.WithContext(ctx)
 	c.eg = eg
-	via := ""
-	if c.proxyURL != nil {
-		via = " via " + c.proxyURL.String()
-	}
-	c.Infof("Connecting to %s%s\n", c.server, via)
 	//connect to chisel server
 	eg.Go(func() error {
 		return c.connectionLoop(ctx)

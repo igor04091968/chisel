@@ -443,6 +443,7 @@ func client(args []string) {
 		os.Exit(0)
 	}
 	flags.Parse(args)
+	config.Verbose = *verbose
 	//pull out options, put back remaining args
 	args = flags.Args()
 	if len(args) < 2 {
@@ -469,7 +470,6 @@ func client(args []string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	c.Debug = *verbose
 	if *pid {
 		generatePidFile()
 	}
