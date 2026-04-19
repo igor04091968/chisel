@@ -1,35 +1,38 @@
-dist/
-*.swp
-.idea/
-chisel
-bin/
-release/
-tmp/
-*.orig
-debug
-.snyk-reports/
-
-# Compiled Object files, Static and Dynamic libs (Shared Objects)
+```
+# Compiled and build artifacts
 *.o
+*.obj
+*.out
+
+# Dependencies
+vendor/
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+
+# Environment
+.env
+.env.local
+*.env.*
+
+# Editors
+.vscode/
+.idea/
+
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Go-specific
 *.a
 *.so
-
-# Folders
-_obj
-_test
-
-# Architecture specific extensions/prefixes
-*.[568vq]
-[568vq].out
-
-*.cgo1.go
-*.cgo2.c
-_cgo_defun.c
-_cgo_gotypes.go
-_cgo_export.*
-
-_testmain.go
-
-*.exe
+*.dylib
 *.test
 *.prof
+cover.out
+go.mod
+go.sum
+```
